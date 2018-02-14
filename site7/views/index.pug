@@ -1,0 +1,13 @@
+extends layout
+block main
+        #container.col
+            if youAreUsingPug
+                p You are amazing
+            else
+                p Get on it!
+            p.
+                Pug is a terse and simple templating language with a
+                strong focus on performance and powerful features.
+            ul
+                for todo in todos
+                    li= todo.title

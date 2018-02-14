@@ -1,0 +1,19 @@
+{
+  "name": "site6",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "directories": {
+    "test": "mocha"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "http-server": "^0.11.1",
+    "mocha": "^5.0.0"
+  }
+}
