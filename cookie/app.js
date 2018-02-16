@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 // app.use('/',(req,res)=>{
 //     console.log(req.headers['cookie']);
-//     res.sendFile(__dirname + '/index.html');
+//     res.sendFile(__dirname + '/index.handlebars');
 // });
 
 app.use('/',(req,res)=>{
@@ -11,7 +11,7 @@ app.use('/',(req,res)=>{
     //res.setHeader('Set-Cookie','TestSendCookie');
     res.setHeader('Set-Cookie',['name1=val1','name2=val2']);
     console.log('Method ',res.getHeader('Set-Cookie'));
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(__dirname + '/index.handlebars');
 });
 
 

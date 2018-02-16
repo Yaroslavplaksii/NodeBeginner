@@ -18,4 +18,23 @@ let config ={
         min:0,
         idleTimeout:30000
     }
-}
+};
+
+app.use(session({
+    store:new MSSQLStore(config),
+    resave:false,
+    saveUnitialized:true,
+    secret:'supersecret'
+}));
+
+app.get('/',(req,res)=>{
+    console.log(req.session);
+    req.session.numberOfRequest = req.sesion.numberOfRequest + 1;
+    let requestCoun = ()=>{
+        return isNaN(req.sesion.numberOfRequest)?0:req.sesion.numberOfRequest;
+    };
+    req.end('Number of request: '+ requestCount());
+});
+
+
+app.listen(port,()=>console.log('Server its working'));
