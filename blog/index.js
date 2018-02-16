@@ -31,8 +31,16 @@ app.get('/',(req,res)=>{
     res.render('pages/index');
 });
 
+app.get('/profile',(req,res)=>{
+    res.render('pages/profile');
+});
+
 app.get('/about-me',(req,res)=>{
     res.render('pages/about-me');
+});
+
+app.get('/contacts',(req,res)=>{
+    res.render('pages/contacts');
 });
 
 app.get('/login',(req,res)=>{
@@ -43,6 +51,13 @@ app.get('/register',(req,res)=>{
     res.render('pages/register');
 });
 
+app.get('/list',(req,res)=>{
+    res.render('pages/list');
+});
+
+app.get('/blog',(req,res)=>{
+    res.render('pages/blog');
+});
 
 admin.use(express.static(path.join(__dirname,'public')));
 admin.use(bodyParser.json());
@@ -60,5 +75,20 @@ admin.get('/',(req,res)=>{
     res.render('admin/index');
 });
 app.use('/admin',admin);
+
+app.use((req,res,next)=>{
+    res.status(404);
+    if(req.accepts('html')){
+        res.render('pages/404',{
+            url:req.url
+        });
+        return;
+    }
+    if(req.accepted('json')){
+        res.send({error:'Not Found'});
+        return;
+    }
+    res.type('txt').send('Not Found');
+});
 
 app.listen(port,()=>console.log('Server is running.....'));
