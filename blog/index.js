@@ -63,6 +63,18 @@ admin.use(express.static(path.join(__dirname,'public')));
 admin.use(bodyParser.json());
 admin.use(bodyParser.urlencoded({extendet:true}));
 
+admin.get('/categories',(req,res)=>{
+    res.render('admin/categories/index');
+});
+
+admin.get('/tags',(req,res)=>{
+    res.render('admin/tags/index');
+});
+
+admin.get('/posts',(req,res)=>{
+    res.render('admin/posts/index');
+});
+
 admin.engine('handlebars',exphbs({
     defaultLayout:__dirname + '/views/admin/layout',
     layoutsDir:__dirname + '/views/admin',
