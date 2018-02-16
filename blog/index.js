@@ -28,27 +28,39 @@ app.engine('handlebars',exphbs({
 app.set('view engine','handlebars');
 
 app.get('/',(req,res)=>{
-    res.render('pages/index');
+    res.render('pages/index',{
+        title:'Home'
+    });
 });
 
 app.get('/profile',(req,res)=>{
-    res.render('pages/profile');
+    res.render('pages/profile',{
+        title:'Profile'
+    });
 });
 
 app.get('/about-me',(req,res)=>{
-    res.render('pages/about-me');
+    res.render('pages/about-me',{
+        title:'About'
+    });
 });
 
 app.get('/contacts',(req,res)=>{
-    res.render('pages/contacts');
+    res.render('pages/contacts',{
+        title:'Contacts'
+    });
 });
 
 app.get('/login',(req,res)=>{
-    res.render('pages/login');
+    res.render('pages/login',{
+        title:'Login'
+    });
 });
 
 app.get('/register',(req,res)=>{
-    res.render('pages/register');
+    res.render('pages/register',{
+        title:'Register'
+    });
 });
 
 app.get('/list',(req,res)=>{
