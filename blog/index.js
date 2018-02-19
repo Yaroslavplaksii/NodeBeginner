@@ -1,4 +1,13 @@
-//const blog = require('./models/config');
+//const connection = require('./models/config');
+
+const mysql = require('mysql');
+const connection = mysql.createConnection({
+    host:'localhost',
+    user:'root',
+    password:'',
+    database:'blog'
+});
+
 const express = require('express');
 const exphbs = require('express-handlebars');
 const bodyParser = require('body-parser');
@@ -19,18 +28,31 @@ app.engine('handlebars',exphbs({
     partialsDir:[
         __dirname + '/views/pages/partials'
     ],
-    helpers:{}
+    helpers:{
+        catss : function(){
+            let html = '';
+            connection.query("SELECT * FROM categories", function(err, cats) {
+                for(var i in cats){
+                    html += '<li>'+cats[i]['title']+'</li>';
+                }
+            });
+        }
+    }
 }));
-
-
 
 
 app.set('view engine','handlebars');
 
-app.get('/',(req,res)=>{
-    res.render('pages/index',{
-        title:'Home'
-    });
+app.get('/',(req,res)=> {
+        connection.query("SELECT * FROM posts LIMIT 5", function(err, rows) {
+            //connection.query("SELECT * FROM categories", function(err, cats) {
+                res.render('pages/index', {
+                    title: 'Home page',
+                    results: rows,
+                   // categories: cats
+               // });
+            });
+        });
 });
 
 app.get('/profile',(req,res)=>{
@@ -67,8 +89,13 @@ app.get('/list',(req,res)=>{
     res.render('pages/list');
 });
 
-app.get('/blog',(req,res)=>{
-    res.render('pages/blog');
+app.get('/blog/:slug',(req,res)=>{
+    connection.query("SELECT * FROM posts WHERE slug=?",[req.params.slug], function(err, rows) {
+        res.render('pages/blog', {
+            title: rows[0]['title'],
+            blog: rows
+        });
+    });
 });
 
 admin.use(express.static(path.join(__dirname,'public')));
