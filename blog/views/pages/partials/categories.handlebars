@@ -1,10 +1,12 @@
 <aside class="widget border pos-padding">
     <h3 class="widget-title text-uppercase text-center">Categories</h3>
-    <ul>
-    {{cats}}
-    <!--{{#each cats}}-->
-        <!--<li><a href="#">{{this.title}}</a><span class="post-count pull-right"> (2)</span></li>-->
-    <!--{{/each}}-->
-    </ul>
-    {{cats}}
+    {{#if categories }}
+      <ul>
+        {{#each categories}}
+            <li><a href="/category/{{slug}}">{{title}}</a><span class="post-count pull-right"> ({{COUNT_POST}})</span></li>
+        {{/each}}
+       </ul>
+        {{else}}
+        No categories
+    {{/if}}
 </aside>

@@ -38,34 +38,38 @@ invidunt ut labore et dolore magna aliquyam erat.</p>
 </div><!--top comment end-->
 <div class="row"><!--blog next previous-->
 <div class="col-md-6">
-    <div class="single-blog-box">
-    <a href="#">
-    <img src="/images/blog-next.jpg" alt="">
-    <div class="overlay">
-    <div class="promo-text">
-    <p><i class=" pull-left fa fa-angle-left"></i></p>
-    <h5>Rubel is doing Cherry theme</h5>
-</div>
-</div>
-
-
-</a>
-</div>
+    {{#if previouseblog}}
+        <div class="single-blog-box">
+                {{#each previouseblog}}
+                    <a href="/blog/{{slug}}">
+                        <img src="/images/{{image}}" alt="{{title}}">
+                        <div class="overlay">
+                            <div class="promo-text">
+                                <p><i class=" pull-left fa fa-angle-left"></i></p>
+                                <h5>{{title}}</h5>
+                            </div>
+                        </div>
+                    </a>
+                {{/each}}
+        </div>
+    {{/if}}
 </div>
 <div class="col-md-6">
-    <div class="single-blog-box">
-    <a href="#">
-    <img src="/images/blog-next.jpg" alt="">
-
-    <div class="overlay">
-    <div class="promo-text">
-    <p><i class=" pull-right fa fa-angle-right"></i></p>
-    <h5>Rubel is doing Cherry theme</h5>
-
-</div>
-</div>
-</a>
-</div>
+    {{#if nextblog}}
+        <div class="single-blog-box">
+                {{#each nextblog}}
+                    <a href="/blog/{{slug}}">
+                        <img src="/images/{{image}}" alt="{{title}}">
+                        <div class="overlay">
+                            <div class="promo-text">
+                                <p><i class=" pull-right fa fa-angle-right"></i></p>
+                                <h5>{{title}}</h5>
+                            </div>
+                        </div>
+                    </a>
+                {{/each}}
+        </div>
+    {{/if}}
 </div>
 </div><!--blog next previous end-->
 <div class="related-post-carousel"><!--related post carousel-->
@@ -153,32 +157,22 @@ voluptua. At vero eos et cusam et justo duo dolores et ea rebum.</p>
 
 <div class="leave-comment"><!--leave comment-->
 <h4>Leave a reply</h4>
-
-
-<form class="form-horizontal contact-form" role="form" method="post" action="#">
+<form class="form-horizontal contact-form" role="form" method="post" action="/add_comment/">
     <div class="form-group">
-    <div class="col-md-6">
-    <input type="text" class="form-control" id="name" name="name" placeholder="Name">
-    </div>
-    <div class="col-md-6">
-    <input type="email" class="form-control" id="email" name="email"
-placeholder="Email">
-    </div>
-    </div>
-
-    <div class="form-group">
-    <div class="col-md-12">
-    <input type="text" class="form-control" id="subject" name="subject"
-placeholder="Website url">
-    </div>
+        <div class="col-md-6">
+            <input type="text" class="form-control" id="name" name="name" placeholder="Name">
+        </div>
+        <div class="col-md-6">
+            <input type="text" class="form-control" id="email" name="email" placeholder="Email">
+        </div>
     </div>
     <div class="form-group">
-    <div class="col-md-12">
-    <textarea class="form-control" rows="6" name="message"
-placeholder="Write Massage"></textarea>
+        <div class="col-md-12">
+            <textarea class="form-control" rows="6" name="message" placeholder="Write Massage"></textarea>
+        </div>
     </div>
-    </div>
-    <a href="#" class="btn send-btn">Post Comment</a>
+    <input type="submit" class="btn send-btn" value="Post Comment"/>
 </form>
+    {{getTime}} {{id_post}}
 </div><!--end leave comment-->
 </div>
