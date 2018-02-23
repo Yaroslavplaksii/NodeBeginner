@@ -1,47 +1,57 @@
-const posts = require('./models/posts');
-const api = require('./api/posts');
-const categories = require('./models/categories');
-
-const connection = require('./models/config');
-connection.connect();
-
 const express = require('express');
 const exphbs = require('express-handlebars');
 const bodyParser = require('body-parser');
-const fs = require('fs');
 const path = require('path');
-
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const session = require('express-session');
-const bcrypt = require('bcrypt-nodejs');
+
+const app = express();
+const sess  = require('express-session');
+const Store = require('express-session').Store
+const BetterMemoryStore = require(__dirname + '/memory')
+const store = new BetterMemoryStore({ expires: 60 * 60 * 1000, debug: true })
+app.use(sess({
+    name: 'JSESSION',
+    secret: 'MYSECRETISVERYSECRET',
+    store:  store,
+    resave: true,
+    saveUninitialized: true
+}));
+
+//const bcrypt = require('bcrypt-nodejs');
+const crypto = require('crypto');
 const morgan = require('morgan');
 const flash = require('connect-flash');
+const admin = require('./routes/admin');
 
 
-//var route = require('./routes/controllers');
-// model
-//var Model = require('./models/model');
-const app = express();
-const admin = express();
 
+//const api = require('./api/route');
+//const admin = express();
 
 const port = 8080;
-
 
 app.use(express.static(path.join(__dirname,'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(require('cookie-parser')());
-app.use(session({secret:'keycat'}));
+app.use(sess({secret:'keycat'}));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use(morgan('dev'));
 
+const posts = require('./models/posts');
+const api = require('./api/posts');
+const categories = require('./models/categories');
+const connection = require('./models/config');
 
-app.use((req,res,next)=>{
+connection.connect();
+
+
+/*блок новин і категорій на сайдбар*/
+app.use(function(req,res,next){
     if(!res.locals){
         res.locals={};
     }
@@ -59,6 +69,7 @@ app.use((req,res,next)=>{
     });
     next();
 });
+/*-------------------------------*/
 
 app.engine('handlebars',exphbs({
     defaultLayout:__dirname + '/views/pages/layout',
@@ -86,55 +97,108 @@ app.engine('handlebars',exphbs({
 app.set('view engine','handlebars');
 
 
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated())
-        return next();
-    res.redirect('/');
-}
-/************************/
-passport.use(
-    new LocalStrategy({
-            usernameField: 'email',
-            passwordField : 'password',
-            passReqToCallback : true // allows us to pass back the entire request to the callback
-        },
-        function(req, email, password, done) {
-            connection.query("SELECT * FROM users WHERE email = ?",[email], function(err, rows){
-                if (err)
-                    return done(err);
-                if (!rows.length) {
-                    return done(null, false, req.flash('info', 'That username is already taken.'));
-                }
-                if (!bcrypt.compareSync(password, rows[0].password))
-                    return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
-                return done(null, rows[0]);
-            });
-        })
-);
 
-passport.serializeUser(function(user, done) {
+/************pasport.js**************/
+passport.use('local', new LocalStrategy({
+        usernameField: 'email',
+        passwordField: 'password',
+        passReqToCallback: true //passback entire req to call back
+    } , function (req, email, password, done){
+        console.log(email+' = '+ password);
+        if(!email || !password ) { return done(null, false, req.flash('message','All fields are required.')); }
+        var salt = '7fa73b47df808d36c5fe328546ddef8b9011b2c6';
+        connection.query("select * from users where email = ?", [email], function(err, rows){
+            console.log(err);
+            if (err) return done(req.flash('message',err));
+
+            if(!rows.length){ return done(null, false, req.flash('message','Invalid username or password.')); }
+            salt = salt+''+password;
+            var encPassword = crypto.createHash('sha1').update(salt).digest('hex');
+            var dbPassword  = rows[0].password;
+            // console.log(crypto.createHash('sha1').update(salt).digest('hex'));
+            if(!(dbPassword == encPassword)){
+                return done(null, false, req.flash('message','Invalid username or password.'));
+            }
+            console.log(rows[0]);
+            return done(null, rows[0]);
+        });
+    }
+));
+
+passport.serializeUser(function(user, done){
     done(null, user.id);
 });
 
-passport.deserializeUser(function(id, done) {
-    connection.query("SELECT * FROM users WHERE id = ? ",[id], function(err, rows){
+passport.deserializeUser(function(id, done){
+    connection.query("select * from users where id = "+ id, function (err, rows){
         done(err, rows[0]);
     });
 });
 
-/***********************/
+/***********end passport.js***************/
+
+// function isAuthenticated(req, res) {
+//     if (req.isAuthenticated()){
+//        return res.redirect('/profile');
+//     }
+// }
+// function isNotAuthenticated(req, res) {
+//     if (!req.isAuthenticated()){
+//         return res.redirect('/login');
+//     }
+//
+// }
+
+app.get('/login', function(req, res){
+    if (req.isAuthenticated()) {
+        res.redirect('/');
+        return;
+    }
+    res.render('pages/login',{'message' :req.flash('message')});
+});
+
+
+app.post("/login", passport.authenticate('local', {
+    successRedirect: '/profile',
+    failureRedirect: '/login',
+    failureFlash: true
+}), function(req, res, info){
+    res.render('pages/login',{'message' :req.flash('message')});
+});
+
+app.get('/logout', function(req, res){
+    req.session.destroy();
+    req.logout();
+    res.redirect('/login');
+});
+
+
+app.get('/register',function (req,res){
+    if (req.isAuthenticated()) {
+        res.redirect('/');
+        return;
+    }
+    res.render('pages/register',{
+        title:'Register'
+    });
+});
+app.get('/profile', function(req, res) {
+    if (!req.isAuthenticated()) {
+        res.redirect('/login');
+        return;
+    }
+    res.render('pages/profile', {
+        user : req.user
+    });
+});
+
+
 app.get('/',(req,res)=>{
     posts.indexNews((error,rows)=>{
         res.render('pages/index',{
             title:'Home page',
             results:rows
         });
-    });
-});
-
-app.get('/profile',(req,res)=>{
-    res.render('pages/profile',{
-        title:'Profile'
     });
 });
 
@@ -149,43 +213,6 @@ app.get('/contacts',(req,res)=>{
         title:'Contacts'
     });
 });
-
-app.get('/login',isLoggedIn, function (req, res) {
-        res.render('pages/login', { message: bcrypt.hashSync("1111")
-});
-});
-app.post('/login', passport.authenticate('local',
-    { successRedirect: '/profile',
-    failureRedirect: '/login',
-    failureFlash: true
-}));
-
-app.get('/logout', function(req, res) {
-    res.render('pages/login', { message: '' });
-});
-
-app.post('/logout', passport.authenticate('local', {
-    successRedirect : '/profile', // redirect to the secure profile section
-    failureRedirect : '/logout', // redirect back to the signup page if there is an error
-   // failureFlash : true // allow flash messages
-}));
-app.get('/register',isLoggedIn,function (req,res){
-    res.render('pages/register',{
-        title:'Register'
-    });
-});
-app.get('/profile', isLoggedIn, function(req, res) {
-    res.render('pages/profile', {
-        user : req.user // get the user out of session and pass to template
-    });
-});
-app.get('/logout', function(req, res) {
-    req.logout();
-    res.redirect('/');
-});
-
-
-
 
 app.get('/list',(req,res)=>{
     posts.allPosts((error,allposts)=>{
@@ -230,21 +257,6 @@ app.post('/add_comment',(req,res)=>{
     });
 });
 
-admin.use(express.static(path.join(__dirname,'public')));
-admin.use(bodyParser.json());
-admin.use(bodyParser.urlencoded({extended:true}));
-
-admin.get('/categories',(req,res)=>{
-    res.render('admin/categories/index');
-});
-
-admin.get('/tags',(req,res)=>{
-    res.render('admin/tags/index');
-});
-
-admin.get('/posts',(req,res)=>{
-    res.render('admin/posts/index');
-});
 
 admin.engine('handlebars',exphbs({
     defaultLayout:__dirname + '/views/admin/layout',
@@ -254,14 +266,9 @@ admin.engine('handlebars',exphbs({
     ],
     helpers:{}
 }));
-admin.get('/',(req,res)=>{
-    res.render('admin/index');
-});
 
 
-
-
-/*rest api*/
+// /*rest api*/
 app.get('/api',(req,res)=>{
     res.send('API is working');
 });
@@ -292,8 +299,8 @@ app.delete('/api/posts/:id',(req,res)=>{
         }
     });
 });
-/*end rest api*/
-
+// /*end rest api*/
+//app.use('/api',api);
 app.use('/admin',admin);
 
 app.use((req,res,next)=>{
