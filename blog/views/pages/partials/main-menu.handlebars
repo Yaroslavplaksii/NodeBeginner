@@ -5,8 +5,12 @@
         <li><a href="/contacts">CONTACT</a></li>
     </ul>
     <ul class="nav navbar-nav text-uppercase pull-right">
-        <li><a href="/register">Register</a></li>
-        <li><a href="/login">Login</a></li>
-        <li><a href="/profile">My profile</a></li>
+       {{#if authenticated }}
+           <li><a href="/profile">My profile</a></li>
+           <li><a href="/logout">Logout</a></li>
+       {{else}}
+           <li><a href="/register">Register</a></li>
+           <li><a href="/login">Login</a></li>
+       {{/if}}
     </ul>
 </div>

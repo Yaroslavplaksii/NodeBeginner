@@ -1,8 +1,8 @@
 <aside class="widget border pos-padding">
     <h3 class="widget-title text-uppercase text-center">Categories</h3>
-    {{#if categories }}
+    {{#if categoriesAll }}
       <ul>
-        {{#each categories}}
+        {{#each categoriesAll}}
             <li><a href="/category/{{slug}}">{{title}}</a><span class="post-count pull-right"> ({{COUNT_POST}})</span></li>
         {{/each}}
        </ul>

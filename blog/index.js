@@ -2,6 +2,9 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const bodyParser = require('body-parser');
 const path = require('path');
+const formidable = require('formidable');
+const fs = require('fs');
+//const async = require('async');
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -23,6 +26,9 @@ app.use(sess({
 const crypto = require('crypto');
 const morgan = require('morgan');
 const flash = require('connect-flash');
+const connection = require('./models/config');
+connection.connect();
+
 const admin = require('./routes/admin');
 
 
@@ -31,12 +37,11 @@ const admin = require('./routes/admin');
 //const admin = express();
 
 const port = 8080;
-
+//
 app.use(express.static(path.join(__dirname,'public')));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.urlencoded({extended:false}));
 app.use(require('cookie-parser')());
-app.use(sess({secret:'keycat'}));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
@@ -45,23 +50,26 @@ app.use(morgan('dev'));
 const posts = require('./models/posts');
 const api = require('./api/posts');
 const categories = require('./models/categories');
-const connection = require('./models/config');
+const comments = require('./models/comments');
 
-connection.connect();
+
+const userData = require('./models/users');
 
 
 /*блок новин і категорій на сайдбар*/
-app.use(function(req,res,next){
-    if(!res.locals){
-        res.locals={};
+app.use((req,res,next)=> {
+    if (!res.locals) {
+        res.locals = {};
     }
-    categories.allCategories((error,rows)=>{
-        res.locals.categories = rows;
+    res.locals.authenticated = req.isAuthenticated();
+    categories.allCategories((error, rows) => {
+        if(error) throw error;
+        res.locals.categoriesAll = rows;
     });
-    posts.futuredPosts((error,rows)=>{
+    posts.futuredPosts((error, rows) => {
         res.locals.futured = rows;
     });
-    posts.popularPosts((error,rows)=>{
+    posts.popularPosts((error, rows) => {
         res.locals.popular = rows;
     });
     posts.recentPosts((error,rows)=>{
@@ -70,6 +78,8 @@ app.use(function(req,res,next){
     next();
 });
 /*-------------------------------*/
+
+
 
 app.engine('handlebars',exphbs({
     defaultLayout:__dirname + '/views/pages/layout',
@@ -96,30 +106,30 @@ app.engine('handlebars',exphbs({
 
 app.set('view engine','handlebars');
 
-
-
+const salt = '7fa73b47df808d36c5fe328546ddef8b9011b2c6';
+console.log(crypto.createHash('sha1').update(salt+''+12345).digest('hex'));
 /************pasport.js**************/
 passport.use('local', new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password',
         passReqToCallback: true //passback entire req to call back
     } , function (req, email, password, done){
-        console.log(email+' = '+ password);
+        //console.log(email+' = '+ password);
         if(!email || !password ) { return done(null, false, req.flash('message','All fields are required.')); }
-        var salt = '7fa73b47df808d36c5fe328546ddef8b9011b2c6';
+
         connection.query("select * from users where email = ?", [email], function(err, rows){
             console.log(err);
             if (err) return done(req.flash('message',err));
 
             if(!rows.length){ return done(null, false, req.flash('message','Invalid username or password.')); }
-            salt = salt+''+password;
-            var encPassword = crypto.createHash('sha1').update(salt).digest('hex');
-            var dbPassword  = rows[0].password;
-            // console.log(crypto.createHash('sha1').update(salt).digest('hex'));
-            if(!(dbPassword == encPassword)){
+            salts = salt+''+password;
+            let encPassword = crypto.createHash('sha1').update(salts).digest('hex');
+            let dbPassword  = rows[0].password;
+
+            if(!(dbPassword === encPassword)){
                 return done(null, false, req.flash('message','Invalid username or password.'));
             }
-            console.log(rows[0]);
+            //console.log(rows[0].avatar);
             return done(null, rows[0]);
         });
     }
@@ -130,24 +140,13 @@ passport.serializeUser(function(user, done){
 });
 
 passport.deserializeUser(function(id, done){
-    connection.query("select * from users where id = "+ id, function (err, rows){
+    connection.query("select * from users where id=?",[id], function (err, rows){
         done(err, rows[0]);
     });
 });
 
 /***********end passport.js***************/
 
-// function isAuthenticated(req, res) {
-//     if (req.isAuthenticated()){
-//        return res.redirect('/profile');
-//     }
-// }
-// function isNotAuthenticated(req, res) {
-//     if (!req.isAuthenticated()){
-//         return res.redirect('/login');
-//     }
-//
-// }
 
 app.get('/login', function(req, res){
     if (req.isAuthenticated()) {
@@ -191,7 +190,58 @@ app.get('/profile', function(req, res) {
         user : req.user
     });
 });
-
+app.post('/profile',(req,res)=>{
+    if (req.isAuthenticated()) {
+    const form = new formidable.IncomingForm();
+    form.uploadDir = __dirname + "/public/uploads/";
+    form.encoding = 'utf-8';
+    form.keepExtensions= true;
+    form.parse(req,(err,fields,files)=>{
+        userData.updateProfile({
+                id:fields.id,
+                name:fields.name,
+                email:fields.email
+            },
+            (error)=>{
+                if(error) throw error;
+            });
+        if(fields.password.length > 0){
+            userData.updatePassword({
+                    id:fields.id,
+                    password: crypto.createHash('sha1').update(salt+fields.password).digest('hex')
+                },
+                (error)=>{
+                    if(error) throw error;
+                });
+        }
+        if(files.avatar.path && files.avatar.name){
+            userData.getAvatar(fields.id,(error,old_avatar)=>{
+                if(fs.existsSync(__dirname + "/public/uploads/"+old_avatar[0].avatar)){
+                    fs.unlinkSync(__dirname + "/public/uploads/"+old_avatar[0].avatar,(error)=>{
+                        if(error) throw error;
+                    });
+                }
+            });
+                let oldpath = files.avatar.path;
+                let newpath = __dirname + '/public/uploads/' + files.avatar.name;
+                if(err) throw err;
+                fs.rename(oldpath, newpath, (err)=>{
+                    if(err) throw err;
+                    userData.updateAvatar({
+                            avatar: files.avatar.name,
+                            id: fields.id
+                        },
+                        (error)=>{
+                            if(error) throw error;
+                        });
+                });
+        }
+    });
+      res.redirect(303,'/profile');
+    }else{
+        res.redirect(303,'/');
+    }
+});
 
 app.get('/',(req,res)=>{
     posts.indexNews((error,rows)=>{
@@ -250,11 +300,17 @@ app.get('/category/:slug',(req,res)=>{
     });
 });
 app.post('/add_comment',(req,res)=>{
-    connection.query("INSERT INTO comments (text, user_id, username, useremail, post_id, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)",
-        [req.body.message, 0, req.body.name, req.body.email, 2, 0, new Date().toLocaleString(), new Date().toLocaleString()],(error,data)=>{
+    comments.addComment({
+        data:req.body
+    },(error)=>{
         if(error) throw error;
         res.redirect('/');
     });
+    // connection.query("INSERT INTO comments (text, user_id, username, useremail, post_id, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)",
+    //     [req.body.message, 0, req.body.name, req.body.email, 2, 0, new Date().toLocaleString(), new Date().toLocaleString()],(error,data)=>{
+    //     if(error) throw error;
+    //
+    // });
 });
 
 
