@@ -302,7 +302,7 @@ app.get('/category/:slug',(req,res)=>{
 app.post('/add_comment',(req,res)=>{
     comments.addComment({
         data:req.body
-    },(error)=>{
+    },(error,data)=>{
         if(error) throw error;
         res.redirect('/');
     });
