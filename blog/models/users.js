@@ -28,6 +28,12 @@ const UserData = {
     },
     getAvatar:(id,callback)=>{
         connection.query("SELECT avatar FROM users WHERE id=?",id,callback);
+    },
+    getUserById:(id,callback)=>{
+        connection.query("select * from users where id=?",[id],callback);
+    },
+    getUserByEmail:(email,callback)=>{
+        connection.query("select * from users where email = ?", [email],callback);
     }
 };
 module.exports = UserData;

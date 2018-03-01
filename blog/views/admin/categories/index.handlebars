@@ -1,40 +1,38 @@
 <section class="content">
-
-    <!-- Default box -->
-<div class="box">
-    <div class="box-header">
-    <h3 class="box-title">Листинг сущности</h3>
-</div>
-<!-- /.box-header -->
-<div class="box-body">
-    <div class="form-group">
-    <a href="create.html" class="btn btn-success">Добавить</a>
-</div>
-<table id="example1" class="table table-bordered table-striped">
-    <thead>
-    <tr>
-    <th>ID</th>
-    <th>Название</th>
-<th>Действия</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>Обучение
-</td>
-<td><a href="edit.html" class="fa fa-pencil"></a> <a href="#" class="fa fa-remove"></a></td>
-    </tr>
-    <tr>
-    <td>2</td>
-    <td>Работа</td>
-<td><a href="edit.html" class="fa fa-pencil"></a> <a href="#" class="fa fa-remove"></a></td>
-    </tr>
-    </tfoot>
-    </table>
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">Листинг сущности</h3>
+        </div>
+        <div class="box-body">
+            <div class="form-group">
+                <a href="/admin/categories/create" class="btn btn-success">Добавить</a>
+            </div>
+            {{#if message.success}}
+                {{message.success}}
+            {{/if}}
+            <table id="example1" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                {{#if categories }}
+                    <tbody>
+                        {{#each categories }}
+                            <tr>
+                                <td>{{id}}</td>
+                                <td>{{title}}</td>
+                                <td>
+                                    <a href="/admin/categories/edit/{{id}}" class="fa fa-pencil"></a>
+                                    <a href="/admin/categories/delete/{{id}}" onclick="return confirm('Do you want delete this category?')" class="fa fa-remove"></a>
+                                </td>
+                            </tr>
+                        {{/each}}
+                    </tbody>
+                {{/if}}
+            </table>
+        </div>
     </div>
-    <!-- /.box-body -->
-</div>
-<!-- /.box -->
-
 </section>

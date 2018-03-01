@@ -11,8 +11,8 @@ connection.connect();
 
 const Comments ={
     addComment:(data,callback)=>{
-        connection.query("INSERT INTO comments (text, user_id, username, useremail, post_id, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)",
-            [data.message, 0, data.name, data.email, 2, 0, new Date().toLocaleString(), new Date().toLocaleString()],callback);
+        connection.query("INSERT INTO comments (text, user_id, post_id, status, created_at, updated_at) VALUES (?,?,?,?,?,?)",
+            [data.text, data.user_id, data.post_id, 0, new Date().toLocaleString(), new Date().toLocaleString()],callback);
     },
 };
 

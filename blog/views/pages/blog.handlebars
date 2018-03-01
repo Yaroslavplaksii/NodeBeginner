@@ -39,8 +39,8 @@ invidunt ut labore et dolore magna aliquyam erat.</p>
 <div class="row"><!--blog next previous-->
 <div class="col-md-6">
     {{#if previouseblog}}
-        <div class="single-blog-box">
-                {{#each previouseblog}}
+        {{#each previouseblog}}
+                <div class="single-blog-box">
                     <a href="/blog/{{slug}}">
                         <img src="/images/{{image}}" alt="{{title}}">
                         <div class="overlay">
@@ -50,14 +50,14 @@ invidunt ut labore et dolore magna aliquyam erat.</p>
                             </div>
                         </div>
                     </a>
-                {{/each}}
-        </div>
+                </div>
+        {{/each}}
     {{/if}}
 </div>
 <div class="col-md-6">
     {{#if nextblog}}
-        <div class="single-blog-box">
-                {{#each nextblog}}
+        {{#each nextblog}}
+                <div class="single-blog-box">
                     <a href="/blog/{{slug}}">
                         <img src="/images/{{image}}" alt="{{title}}">
                         <div class="overlay">
@@ -67,8 +67,8 @@ invidunt ut labore et dolore magna aliquyam erat.</p>
                             </div>
                         </div>
                     </a>
-                {{/each}}
-        </div>
+                </div>
+        {{/each}}
     {{/if}}
 </div>
 </div><!--blog next previous end-->
@@ -77,57 +77,18 @@ invidunt ut labore et dolore magna aliquyam erat.</p>
     <h4>You might also like</h4>
 </div>
 <div class="items">
-    <div class="single-item">
-    <a href="#">
-    <img src="/images/related-post-1.jpg" alt="">
 
-    <p>Just Wondering at Beach</p>
-</a>
-</div>
+        {{#if similars }}
+            {{#each similars}}
+                <div class="single-item">
+                    <a href="/blog/{{slug}}">
+                    <img src="/images/{{image}}" alt="">
+                    <p>{{title}}</p>
+                </a>
+                </div>
+            {{/each}}
+        {{/if}}
 
-
-<div class="single-item">
-    <a href="#">
-    <img src="/images/related-post-2.jpg" alt="">
-
-    <p>Just Wondering at Beach</p>
-</a>
-</div>
-
-
-<div class="single-item">
-    <a href="#">
-    <img src="/images/related-post-3.jpg" alt="">
-
-    <p>Just Wondering at Beach</p>
-</a>
-</div>
-
-
-<div class="single-item">
-    <a href="#">
-    <img src="/images/related-post-1.jpg" alt="">
-
-    <p>Just Wondering at Beach</p>
-</a>
-</div>
-
-<div class="single-item">
-    <a href="#">
-    <img src="/images/related-post-2.jpg" alt="">
-
-    <p>Just Wondering at Beach</p>
-</a>
-</div>
-
-
-<div class="single-item">
-    <a href="#">
-    <img src="/images/related-post-3.jpg" alt="">
-
-    <p>Just Wondering at Beach</p>
-</a>
-</div>
 </div>
 </div><!--related post carousel-->
 <div class="bottom-comment"><!--bottom comment-->
@@ -154,25 +115,21 @@ voluptua. At vero eos et cusam et justo duo dolores et ea rebum.</p>
 </div>
 <!-- end bottom comment-->
 
-
-<div class="leave-comment"><!--leave comment-->
-<h4>Leave a reply</h4>
-<form class="form-horizontal contact-form" role="form" method="post" action="/add_comment/">
-    <div class="form-group">
-        <div class="col-md-6">
-            <input type="text" class="form-control" id="name" name="name" placeholder="Name">
-        </div>
-        <div class="col-md-6">
-            <input type="text" class="form-control" id="email" name="email" placeholder="Email">
-        </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-12">
-            <textarea class="form-control" rows="6" name="message" placeholder="Write Massage"></textarea>
-        </div>
-    </div>
-    <input type="submit" class="btn send-btn" value="Post Comment"/>
-</form>
-    {{getTime}} {{id_post}}
-</div><!--end leave comment-->
+    {{#if authenticated }}
+        <div class="leave-comment"><!--leave comment-->
+        <h4>Leave a reply</h4>
+        <form class="form-horizontal contact-form" role="form" method="post" action="/add_comment/">
+            {{#each blog}}
+                    <input type="hidden" name="post_id" value="{{id}}">
+            {{/each}}
+            <div class="form-group">
+                <div class="col-md-12">
+                    <textarea class="form-control" rows="6" name="message" placeholder="Write Massage"></textarea>
+                </div>
+            </div>
+            <input type="submit" class="btn send-btn" value="Post Comment"/>
+        </form>
+            {{getTime}}
+        </div><!--end leave comment-->
+    {{/if}}
 </div>

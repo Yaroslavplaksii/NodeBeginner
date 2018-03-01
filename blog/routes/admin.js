@@ -21,11 +21,7 @@ router.get('/posts',(req,res)=>{
 });
 
 router.get('/',(req,res)=>{
-    if (req.isAuthenticated() && res.user.is_admin ===0) {
         res.render('admin/index');
-    }else{
-        res.redirect('/');
-    }
 });
 
 module.exports = router;
